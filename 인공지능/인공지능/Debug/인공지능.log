@@ -1,0 +1,13 @@
+﻿빌드 시작: 2017-07-10 오후 7:34:08
+     1>2 노드의 "c:\Users\wksrm\OneDrive\문서\visual studio 2010\Projects\인공지능\인공지능\인공지능.vcxproj" 프로젝트(build 대상)입니다.
+     1>InitializeBuildStatus:
+         "Debug\인공지능.unsuccessfulbuild"에 연결(touching)하고 있습니다.
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt Multivariate_Linear_R.cpp
+         Multivariate_Linear_R.cpp
+     1>c:\users\wksrm\onedrive\문서\visual studio 2010\projects\인공지능\인공지능\multivariate_linear_r.cpp(1): fatal error C1083: 포함 파일을 열 수 없습니다. 'fstream.h': No such file or directory
+     1>"c:\Users\wksrm\OneDrive\문서\visual studio 2010\Projects\인공지능\인공지능\인공지능.vcxproj" 프로젝트를 빌드했습니다(build 대상). - 실패
+
+빌드하지 못했습니다.
+
+경과 시간: 00:00:00.37
