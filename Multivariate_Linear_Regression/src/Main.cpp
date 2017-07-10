@@ -19,7 +19,6 @@ private :
 	int size_of_features; // n
 
 	vector<double> theta_vec;
-	vector<double> input_vec;
 	vector<double> max_val_vec;
 	vector<double> min_val_vec;
 	vector<double> average_vec;
@@ -43,7 +42,11 @@ public :
 };
 
 int main(int argc, char* argv[]) {
-
+	Linear_Regression model;
+	model.train("input_data.txt");
+	model.mean_normalize();
+	model.gradient_descent(0.001);
+	model.measure_accuracy("test_data.txt");
 }
 
 Linear_Regression::Linear_Regression() : size_of_features(0), size_of_training_data(0) {}
@@ -90,8 +93,15 @@ void Linear_Regression::gradient_descent(double learning_rate) {
 	}
 }
 void Linear_Regression::mean_normalize() {
-	for(int i = 1; i < size_of_features; i++)
-		input_vec[i] = (input_vec[i] - average_vec[i]) / (max_val_vec[i] - min_val_vec[i]);
+	double* mat_array = new double[(size_of_features+1) * size_of_training_data];
+	for(int i = 0; i < size_of_training_data; i++) {
+			mat_array[i * size_of_features + 0] = 1.f;
+			mat_array[i * size_of_features + size_of_features] = input_mat.getValue(i, size_of_features);
+		for(int j = 1; j < size_of_features; j++) {
+			mat_array[i * size_of_features + j] = (mat_array[i * size_of_features + j] - average_vec[i]) / (max_val_vec[i] - min_val_vec[i]);
+		}
+	}
+	input_mat.setValue(mat_array, size_of_features + 1, size_of_training_data);
 }
 void Linear_Regression::normal_equation() {
 
@@ -105,13 +115,41 @@ int Linear_Regression::get_Size_of_features() {
 }
 void Linear_Regression::train(const char* filename) {
 	input_from_txt(filename);
-
 }
 void Linear_Regression::measure_accuracy(const char* filename) {
+	ifstream input;
+	char *temp;
+	int num_of_test_data;
+	input.open(filename);
+	input.getline(temp, 10);
+	num_of_test_data = atoi(temp);
+	temp = "";
 
+	for(int i = 0; i < num_of_test_data; i++) {
+		vector<double> input_line_vector(size_of_features+1);
+		char* ptr;
+		input.getline(temp, 1024);
+		ptr = strtok(temp, " ");
+		input_line_vector[0] = atoi(ptr);
+		for(int j = 1; j <= size_of_features; j++) {
+			ptr = strtok(NULL, " ");
+			input_line_vector[j] = atoi(ptr);
+		}
+		measure_accuracy(input_line_vector);
+	}
+
+	input.close();
 }
 void Linear_Regression::measure_accuracy(vector<double> data_for_measurement) {
+	vector<double> x_vec(size_of_features);
+	for(int i = 0; i < size_of_features; i++)
+		x_vec[i] = data_for_measurement[i];
 
+	double actual_data = data_for_measurement[size_of_features];
+	double hypothesis = calculate_hypothesis(x_vec, theta_vec);
+	double error = fabs((hypothesis - actual_data) / actual_data) * 100;
+
+	printf("hypothesis : %f, actual_data : %f\n, error : %f", hypothesis, actual_data, error);
 }
 void Linear_Regression::input_from_txt(const char* filename) {
 	ifstream input;
@@ -121,7 +159,6 @@ void Linear_Regression::input_from_txt(const char* filename) {
 
 	input.getline(temp, 10);
 	size_of_features = atoi(temp) + 1;
-	input_vec = vector<double>(size_of_features);
 	theta_vec = vector<double>(size_of_features);
 	min_val_vec = vector<double>(size_of_features);
 	max_val_vec = vector<double>(size_of_features);
@@ -153,7 +190,7 @@ void Linear_Regression::input_from_txt(const char* filename) {
 				calculate_max_min_val(j, i, mat_array);
 		}
 	}
-	input_mat.setValue(mat_array, size_of_features, size_of_training_data);
+	input_mat.setValue(mat_array, size_of_features+1, size_of_training_data);
 	average_vec[0] = 1.f;
 	for(int i = 1; i < size_of_features; i++) {
 		for(int j = 0; j < size_of_training_data; j++)
