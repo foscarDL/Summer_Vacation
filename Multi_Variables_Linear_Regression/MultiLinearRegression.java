@@ -47,7 +47,7 @@ public class MultiLinearRegression {
 		judge();
 	}
 
-	public static double hypothesis(int noCase) {
+	public static double getHypothesis(int noCase) {
 		double h = 0;
 
 		for(int i = 0; i < nFeature+1; i++) {
@@ -61,7 +61,7 @@ public class MultiLinearRegression {
 		double sum = 0;
 
 		for(int i = 0; i < nData; i++) {
-			sum = sum + (hypothesis(i) - matY[i]) * matX[i][noCase];
+			sum = sum + (getHypothesis(i) - matY[i]) * matX[i][noCase];
 		}
 
 		return sum;
