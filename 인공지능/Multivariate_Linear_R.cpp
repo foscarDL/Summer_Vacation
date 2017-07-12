@@ -24,7 +24,7 @@ void gradientDecent();
 double costFunction(double theta[5]);
 double* difFunction(double theta[5]);
 double hypothesisFunction(Matrix<double,1,n> x, double theta[5]);
-double test();
+
 
 
 int main(){
@@ -51,7 +51,6 @@ int main(){
 
 	gradientDecent();
 	
-	cout << test() << endl;
 
 	system("pause");
 	fin.close();
