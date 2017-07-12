@@ -39,29 +39,29 @@ public class MultiLinearRegression {
 		for(int i = 0; i < 2000; i++) {
 			updateTheta();
 
-			if(i % 200 == 0) {
+			if(i % 20 == 0) {
 				System.out.println("θ0 = " + matTheta[0] + "\nθ1 = " + matTheta[1] + "\nθ2 = " + matTheta[2] + "\nθ3 = " + matTheta[3] + "\nθ4 = " + matTheta[4] + "\n");
 			}
 		}
 
-		System.out.println(getY());
+		judge();
 	}
 
-	public static double hypothesis(int j) {
+	public static double hypothesis(int noCase) {
 		double h = 0;
 
 		for(int i = 0; i < nFeature+1; i++) {
-			h = h + (matTheta[i] * matX[j][i]);
+			h = h + (matTheta[i] * matX[noCase][i]);
 		}
 
 		return h;
 	}
 
-	public static double getDifferentialValue(int j) {
+	public static double getDifferentialValue(int noCase) {
 		double sum = 0;
 
 		for(int i = 0; i < nData; i++) {
-			sum = sum + (hypothesis(i) - matY[i]) * matX[i][j];
+			sum = sum + (hypothesis(i) - matY[i]) * matX[i][noCase];
 		}
 
 		return sum;
@@ -83,12 +83,13 @@ public class MultiLinearRegression {
 		matTheta[4] = temp4;
 	}
 
-	public static double getY() {
+	public static void judge() {
 		double y = 0;
-		
+
 		input = new Scanner(System.in);
 		matInput[0] = 1;
 
+		System.out.print("Input data : ");
 		for(int i = 1; i < nFeature+1; i++) {
 			matInput[i] = input.nextInt();
 		}
@@ -97,6 +98,6 @@ public class MultiLinearRegression {
 			y = y + matTheta[i] * matInput[i];
 		}
 
-		return y;
+		System.out.println("Output : " + y);
 	}
 }
