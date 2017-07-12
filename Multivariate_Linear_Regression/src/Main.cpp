@@ -14,12 +14,16 @@
 
 using namespace std;
 
+#define INPUT_DATA_FILE 	"input_data.txt"
+#define TEST_DATA_FILE 		"test_data.txt"
+#define LEARNING_RATE 		0.0003 			// with mean normalize
+//#define LEARNING_RATE		0.0000063		// without mean normalize
+
 int main(int argc, char* argv[]) {
 	Linear_Regression model = Linear_Regression();
-	model.train("input_data.txt");
-	model.gradient_descent(0.0003); // with mean normalize
-	//model.gradient_descent(0.0000063); // with no mean normalize
-	model.measure_accuracy("test_data.txt");
+	model.train(INPUT_DATA_FILE);
+	model.gradient_descent(LEARNING_RATE);
+	model.measure_accuracy(TEST_DATA_FILE);
 }
 
 
