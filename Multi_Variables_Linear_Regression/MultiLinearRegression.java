@@ -9,11 +9,12 @@ public class MultiLinearRegression {
 	private static int[][] matX;
 	private static int[] matY;
 	private static double[] matTheta;
-
 	private static int[] matInput;
 
+	private static Scanner input;
+
 	public static void main(String[] args) throws FileNotFoundException {
-		Scanner input = new Scanner(new File("input.dat"));
+		input = new Scanner(new File("input.dat"));
 
 		nData = input.nextInt();
 		nColumns = input.nextInt();
@@ -56,16 +57,6 @@ public class MultiLinearRegression {
 		return h;
 	}
 
-	public static double getCost(int j) {
-		double sum = 0;
-
-		for(int i = 0; i < nData; i++) {
-			sum = sum + Math.pow((hypothesis(j)), 2);
-		}
-
-		return (sum / (2 * nData));
-	}
-
 	public static double getDifferentialValue(int j) {
 		double sum = 0;
 
@@ -93,9 +84,10 @@ public class MultiLinearRegression {
 	}
 
 	public static double getY() {
-		Scanner input = new Scanner(System.in);
-		matInput[0] = 1;
 		double y = 0;
+		
+		input = new Scanner(System.in);
+		matInput[0] = 1;
 
 		for(int i = 1; i < nFeature+1; i++) {
 			matInput[i] = input.nextInt();
