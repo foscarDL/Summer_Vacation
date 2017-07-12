@@ -45,8 +45,8 @@ int main(int argc, char* argv[]) {
 	Linear_Regression model = Linear_Regression();
 	model.train("input_data.txt");
 	model.mean_normalize();
-	model.gradient_descent(0.001);
-	//model.measure_accuracy("test_data.txt");
+	model.gradient_descent(0.3);
+	model.measure_accuracy("test_data.txt");
 }
 
 Linear_Regression::Linear_Regression() :
@@ -60,13 +60,15 @@ double Linear_Regression::calculate_cost_func(vector<double> theta) {
 		x_vec[0] = 1.f;
 		for (int j = 1; j < size_of_features; j++) {
 			x_vec[j] = input_mat.getValue(i, j);
+			//printf("%f ", x_vec[j]);
 		}
+		//printf("\n");
 		cost_func_val += pow(
 				(calculate_hypothesis(x_vec, theta)
 						- input_mat.getValue(i, size_of_features)), 2.f);
 	}
 	cost_func_val /= 2 * size_of_training_data;
-	printf("cost_func_val : %f", cost_func_val);
+	printf("cost_func_val : %f\n", cost_func_val);
 	return cost_func_val;
 }
 double Linear_Regression::calculate_dif_cost_func(vector<double> theta,
@@ -74,9 +76,9 @@ double Linear_Regression::calculate_dif_cost_func(vector<double> theta,
 	double cost_func_val = 0.f;
 	for (int i = 0; i < size_of_training_data; i++) {
 		vector<double> x_vec(size_of_features);
-		x_vec[0] = 1.f;
+		x_vec.push_back(1.f);
 		for (int j = 1; j < size_of_features; j++) {
-			x_vec[j] = input_mat.getValue(i, j);
+			x_vec.push_back(input_mat.getValue(i, j));
 		}
 		cost_func_val += (calculate_hypothesis(x_vec, theta)
 				- input_mat.getValue(i, size_of_features)) * x_vec[index];
@@ -90,17 +92,24 @@ double Linear_Regression::calculate_hypothesis(vector<double> input,
 }
 void Linear_Regression::gradient_descent(double learning_rate) {
 	while (true) {
+		input_mat.show();
 		double pre_cost = calculate_cost_func(theta_vec);
 		vector<double> temp(size_of_features);
+		printf("pre theta_vec : ");
 		for (int i = 0; i < size_of_features; i++) {
+			printf("%f ", theta_vec[i]);
 			temp[i] = theta_vec[i]
 					- learning_rate * (1 / size_of_training_data)
 							* calculate_dif_cost_func(theta_vec, i);
+		}
+		printf("\n");
+		printf("cur theta_vec : ");
+		for (int i = 0; i < size_of_features; i++) {
 			printf("%f ", temp[i]);
 		}
 		printf("\n");
 		theta_vec = temp;
-		if (calculate_cost_func(theta_vec) < pre_cost)
+		if (calculate_cost_func(theta_vec) >= pre_cost)
 			break;
 	}
 }
@@ -141,36 +150,31 @@ void Linear_Regression::measure_accuracy(const char* filename) {
 	char *temp;
 	int num_of_test_data;
 	input.open(filename);
-	input.getline(temp, 10);
+	input >> temp;
 	num_of_test_data = atoi(temp);
-	temp = "";
-	printf("min : %f, max : %f\n", min_val_vec[i], max_val_vec[i]);
 
 	for (int i = 0; i < num_of_test_data; i++) {
 		vector<double> input_line_vector(size_of_features + 1);
-		char* ptr;
-		input.getline(temp, 1024);
-		ptr = strtok(temp, " ");
-		input_line_vector[0] = atoi(ptr);
+		input_line_vector[0] = 1.f;
 		for (int j = 1; j <= size_of_features; j++) {
-			ptr = strtok(NULL, " ");
-			input_line_vector[j] = atoi(ptr);
+			input >> temp;
+			input_line_vector[j] = atof(temp);
 		}
 		measure_accuracy(input_line_vector);
+		input_line_vector.clear();
 	}
-
 	input.close();
 }
 void Linear_Regression::measure_accuracy(vector<double> data_for_measurement) {
 	vector<double> x_vec(size_of_features);
-	for (int i = 0; i < size_of_features; i++)
-		x_vec[i] = data_for_measurement[i];
-
+	for (int i = 0; i < size_of_features; i++) {
+//		printf("x_vec[%d] : %f\n", i,data_for_measurement[i]);
+		x_vec.push_back(data_for_measurement[i]);
+	}
 	double actual_data = data_for_measurement[size_of_features];
 	double hypothesis = calculate_hypothesis(x_vec, theta_vec);
 	double error = fabs((hypothesis - actual_data) / actual_data) * 100;
-
-	printf("hypothesis : %f, actual_data : %f\n, error : %f", hypothesis,
+	printf("hypothesis : %f, actual_data : %f\nerror : %f\n", hypothesis,
 			actual_data, error);
 }
 void Linear_Regression::input_from_txt(const char* filename) {
