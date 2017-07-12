@@ -23,16 +23,17 @@ private:
 	vector<double> min_val_vec;
 	vector<double> average_vec;
 	foscar::Matrix input_mat;
+	foscar::Matrix test_mat;
 
 	double calculate_hypothesis(vector<double> input, vector<double> theta);
 	double calculate_cost_func(vector<double> theta);
 	double calculate_dif_cost_func(vector<double> theta, int index);
 	void input_from_txt(const char* filename);
 	void calculate_max_min_val(int index, int row, double* mat_array);
+	void mean_normalize(int input_spec);
 public:
 	Linear_Regression();
 	void gradient_descent(double learning_rate);
-	void mean_normalize();
 	void normal_equation();
 	int get_Size_of_training_data();
 	int get_Size_of_features();
@@ -44,8 +45,8 @@ public:
 int main(int argc, char* argv[]) {
 	Linear_Regression model = Linear_Regression();
 	model.train("input_data.txt");
-	model.mean_normalize();
-	model.gradient_descent(0.3);
+	//model.gradient_descent(0.0003); // with mean normalize
+	model.gradient_descent(0.0000063); // with no mean normalize
 	model.measure_accuracy("test_data.txt");
 }
 
@@ -56,71 +57,85 @@ Linear_Regression::Linear_Regression() :
 double Linear_Regression::calculate_cost_func(vector<double> theta) {
 	double cost_func_val = 0.f;
 	for (int i = 0; i < size_of_training_data; i++) {
-		vector<double> x_vec(size_of_features);
+		vector<double> x_vec(size_of_features + 1);
 		x_vec[0] = 1.f;
 		for (int j = 1; j < size_of_features; j++) {
-			x_vec[j] = input_mat.getValue(i, j);
+			x_vec[j] = input_mat.getValue(i+1, j+1);
 			//printf("%f ", x_vec[j]);
 		}
 		//printf("\n");
 		cost_func_val += pow(
 				(calculate_hypothesis(x_vec, theta)
-						- input_mat.getValue(i, size_of_features)), 2.f);
+						- input_mat.getValue(i+1, size_of_features+1)), 2.f);
 	}
 	cost_func_val /= 2 * size_of_training_data;
-	printf("cost_func_val : %f\n", cost_func_val);
+
 	return cost_func_val;
 }
 double Linear_Regression::calculate_dif_cost_func(vector<double> theta,
 		int index) {
 	double cost_func_val = 0.f;
+	vector<double> x_vec(size_of_features + 1);
 	for (int i = 0; i < size_of_training_data; i++) {
-		vector<double> x_vec(size_of_features);
-		x_vec.push_back(1.f);
+
+		x_vec[0] = 1.f;
 		for (int j = 1; j < size_of_features; j++) {
-			x_vec.push_back(input_mat.getValue(i, j));
+			x_vec[j] = input_mat.getValue(i+1, j+1);
 		}
 		cost_func_val += (calculate_hypothesis(x_vec, theta)
-				- input_mat.getValue(i, size_of_features)) * x_vec[index];
+				- input_mat.getValue(i+1, size_of_features+1)) * x_vec[index];
 	}
-	cost_func_val /= size_of_training_data;
 	return cost_func_val;
 }
 double Linear_Regression::calculate_hypothesis(vector<double> input,
 		vector<double> theta) {
-	return inner_product(theta.begin(), theta.end(), input.begin(), 0);
+	double hypothesis = 0.f;
+	for(int i = 0; i < size_of_features; i++) {
+		hypothesis += theta[i] * input[i];
+	}
+	//return inner_product(theta.begin(), theta.end(), input.begin(), 0);
+	return hypothesis;
 }
 void Linear_Regression::gradient_descent(double learning_rate) {
+	int count = 0;
 	while (true) {
-		input_mat.show();
+		printf("training step : %d\n", ++count);
 		double pre_cost = calculate_cost_func(theta_vec);
-		vector<double> temp(size_of_features);
-		printf("pre theta_vec : ");
+		vector<double> temp(size_of_features+1);
 		for (int i = 0; i < size_of_features; i++) {
-			printf("%f ", theta_vec[i]);
 			temp[i] = theta_vec[i]
-					- learning_rate * (1 / size_of_training_data)
-							* calculate_dif_cost_func(theta_vec, i);
+					- learning_rate	* calculate_dif_cost_func(theta_vec, i);
 		}
 		printf("\n");
-		printf("cur theta_vec : ");
+		printf("theta_vec : ");
 		for (int i = 0; i < size_of_features; i++) {
 			printf("%f ", temp[i]);
 		}
 		printf("\n");
-		theta_vec = temp;
-		if (calculate_cost_func(theta_vec) >= pre_cost)
+		printf("cost : %f\n", calculate_cost_func(theta_vec));
+		if (calculate_cost_func(temp) > pre_cost)
 			break;
+		theta_vec = temp;
 	}
 }
-void Linear_Regression::mean_normalize() {
-	double* mat_array = new double[(size_of_features + 1)
-			* size_of_training_data];
-	for (int i = 0; i < size_of_training_data; i++) {
+void Linear_Regression::mean_normalize(int input_spec) {
+	int data_size;
+	if(input_spec == 1)
+		data_size = size_of_training_data;
+	else if(input_spec == 2)
+		data_size = 1;
+	else {
+		printf("mean_normalize parameter error\n");
+		return;
+	}
+	double* mat_array = new double[(size_of_features + 1) * data_size];
+	for (int i = 0; i < data_size; i++) {
 		mat_array[i * (size_of_features + 1) + 0] = 1.f;
 		for (int j = 1; j <= size_of_features; j++) {
-			mat_array[i * (size_of_features + 1) + j] = input_mat.getValue(
-					i + 1, j + 1);
+			if(input_spec == 1)
+				mat_array[i * (size_of_features + 1) + j] = input_mat.getValue(i + 1, j + 1);
+			if(input_spec == 2)
+				mat_array[i * (size_of_features + 1) + j] = test_mat.getValue(i + 1, j + 1);
 			if (j != size_of_features) {
 				mat_array[i * (size_of_features + 1) + j] = (mat_array[i
 						* (size_of_features + 1) + j] - average_vec[j])
@@ -128,7 +143,13 @@ void Linear_Regression::mean_normalize() {
 			}
 		}
 	}
-	input_mat.setValue(mat_array, size_of_training_data, size_of_features + 1);
+	if(input_spec == 1) {
+		input_mat.setValue(mat_array, data_size, size_of_features + 1);
+	}
+	else if(input_spec == 2) {
+		test_mat.setValue(mat_array, data_size, size_of_features + 1);
+	}
+
 	//input_mat.show();
 	delete[] mat_array;
 }
@@ -144,21 +165,36 @@ int Linear_Regression::get_Size_of_features() {
 }
 void Linear_Regression::train(const char* filename) {
 	input_from_txt(filename);
+	//mean_normalize(1);
 }
 void Linear_Regression::measure_accuracy(const char* filename) {
 	ifstream input;
-	char *temp;
+	char temp[1024];
+	input.open(filename, ios::in);
+	if (input.fail()) {
+			printf("file not exists\n");
+	}
 	int num_of_test_data;
-	input.open(filename);
 	input >> temp;
 	num_of_test_data = atoi(temp);
 
 	for (int i = 0; i < num_of_test_data; i++) {
-		vector<double> input_line_vector(size_of_features + 1);
-		input_line_vector[0] = 1.f;
+		test_mat = foscar::Matrix(size_of_features + 1, num_of_test_data);
+		double* temp_mat = new double[size_of_features + 1];
+		temp_mat[0] = 1.f;
 		for (int j = 1; j <= size_of_features; j++) {
 			input >> temp;
-			input_line_vector[j] = atof(temp);
+//			printf("%s ", temp);
+			temp_mat[j] = atof(temp);
+		}
+		test_mat.setValue(temp_mat, 1, size_of_features + 1);
+		delete[] temp_mat;
+		//test_mat.show();
+		//mean_normalize(2);
+		vector<double> input_line_vector(size_of_features + 2);
+		//test_mat.show();
+		for(int j = 1; j <= size_of_features; j++) {
+			input_line_vector[j] = test_mat.getValue(1, j+1);
 		}
 		measure_accuracy(input_line_vector);
 		input_line_vector.clear();
@@ -166,10 +202,10 @@ void Linear_Regression::measure_accuracy(const char* filename) {
 	input.close();
 }
 void Linear_Regression::measure_accuracy(vector<double> data_for_measurement) {
-	vector<double> x_vec(size_of_features);
+	vector<double> x_vec(size_of_features + 1);
 	for (int i = 0; i < size_of_features; i++) {
-//		printf("x_vec[%d] : %f\n", i,data_for_measurement[i]);
-		x_vec.push_back(data_for_measurement[i]);
+		//printf("x_vec[%d] : %f\n", i,data_for_measurement[i]);
+		x_vec[i] = data_for_measurement[i];
 	}
 	double actual_data = data_for_measurement[size_of_features];
 	double hypothesis = calculate_hypothesis(x_vec, theta_vec);
@@ -186,10 +222,10 @@ void Linear_Regression::input_from_txt(const char* filename) {
 	}
 	input >> temp;
 	size_of_features = atoi(temp) + 1;
-	theta_vec = vector<double>(size_of_features);
-	min_val_vec = vector<double>(size_of_features);
-	max_val_vec = vector<double>(size_of_features);
-	average_vec = vector<double>(size_of_features);
+	theta_vec = vector<double>(size_of_features + 1);
+	min_val_vec = vector<double>(size_of_features + 1);
+	max_val_vec = vector<double>(size_of_features + 1);
+	average_vec = vector<double>(size_of_features + 1);
 	bool init_flag = true;
 
 	input >> temp;
@@ -220,11 +256,11 @@ void Linear_Regression::input_from_txt(const char* filename) {
 	}
 	input_mat.setValue(mat_array, size_of_training_data, size_of_features + 1);
 	average_vec[0] = 1.f;
-	for (int i = 1; i < size_of_training_data; i++)
-		average_vec.push_back(0.f);
+	for (int i = 1; i < size_of_features; i++)
+		average_vec[i] = 0.f;
 	for (int i = 1; i < size_of_features; i++) {
 		for (int j = 0; j < size_of_training_data; j++)
-			average_vec[i] += input_mat.getValue(j, i);
+			average_vec[i] += input_mat.getValue(j+1, i+1);
 		average_vec[i] /= size_of_training_data;
 	}
 	input.close();
@@ -238,3 +274,4 @@ void Linear_Regression::calculate_max_min_val(int index, int row,
 	if (max_val_vec[index] < mat_array[row * (size_of_features + 1) + index])
 		max_val_vec[index] = mat_array[row * (size_of_features + 1) + index];
 }
+
