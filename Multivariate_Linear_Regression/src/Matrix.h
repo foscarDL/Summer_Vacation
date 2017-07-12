@@ -1,3 +1,6 @@
+#ifndef MATRIX_H
+#define MATRIX_H
+
 namespace foscar {
 class Matrix {
 
@@ -34,3 +37,4 @@ public:
 };
 }
 
+#endif
