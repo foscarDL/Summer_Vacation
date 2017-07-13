@@ -3,7 +3,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 public class MultiLinearRegression {
-	private static final double LEARNING_RATE = 0.00003;
+	private static final double LEARNING_RATE = 0.0001;
 
 	private static int nData, nColumns, nFeature;
 	private static int[][] matX;
@@ -40,7 +40,7 @@ public class MultiLinearRegression {
 			updateTheta();
 
 			if(i % 20 == 0) {
-				System.out.println("θ0 = " + matTheta[0] + "\nθ1 = " + matTheta[1] + "\nθ2 = " + matTheta[2] + "\nθ3 = " + matTheta[3] + "\nθ4 = " + matTheta[4] + "\n");
+				System.out.printf("θ0 : %.3f\tθ1 : %.3f\tθ2 : %.3f\tθ3 : %.3f\tθ4 : %.3f\n" ,matTheta[0], matTheta[1], matTheta[2], matTheta[3], matTheta[4]);
 			}
 		}
 
