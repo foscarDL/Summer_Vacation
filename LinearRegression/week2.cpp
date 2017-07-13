@@ -14,23 +14,23 @@ public:
   double x_[CASE][FEATURE];
 
   LinearRegression();
-  double hyphothesis(int n);
+  double hypothesis(int n);
   double cost_function();
   double d_cost_function(int n);
   void gradient_descent();
   void new_theta();
   void fillMat(std::ifstream& in);
-  const double learning_rate = 0.078;
+  const double learning_rate;
 
   double test();
 };
 
-LinearRegression::LinearRegression() : x(CASE), y(CASE), theta(FEATURE)
+LinearRegression::LinearRegression() : x(CASE), y(CASE), theta(FEATURE), learning_rate(0.00265)
 {
 
 }
 
-double LinearRegression::hyphothesis(int n)
+double LinearRegression::hypothesis(int n)
 {
   double h_x = 0.0;
   for(int i=0; i<FEATURE; ++i)
@@ -44,9 +44,9 @@ double LinearRegression::cost_function()
   double sum=0.0;
   double cost;
   for(int i=0; i<CASE; ++i)
-      sum += pow(hyphothesis(i)-y[i],2);
+      sum += pow(hypothesis(i)-y[i],2);
   cost = (1/(2*(double)CASE))*sum;
-  //std::cout << "cost : " << cost << std::endl;
+  std::cout << "cost : " << cost << std::endl;
   return cost;
 }
 
@@ -55,7 +55,7 @@ double LinearRegression::d_cost_function(int n)
   double sum = 0;
   double d_cost;
   for(int i=0; i<FEATURE; ++i)
-    sum += (hyphothesis(i)-y[i])*x_[i][n];
+    sum += (hypothesis(i)-y[i])*x_[i][n];
   d_cost = (1/(double)CASE)*sum;
 //  std::cout << "d_cost : " << d_cost << std::endl;
   return d_cost;
@@ -86,7 +86,7 @@ void LinearRegression::new_theta()
   std::vector<double> temp(FEATURE);
   for(int i=0; i<FEATURE; ++i)
   {
-    temp[i] = theta[i] - learning_rate*(1/(double)CASE)*d_cost_function(i);
+    temp[i] = theta[i] - learning_rate*d_cost_function(i);
     theta[i] = temp[i];
   }
 //  std::cout << theta[0] << " " <<theta[1] <<" " <<theta[2] <<" " <<theta[3] <<" " <<theta[4] << std::endl;
@@ -122,6 +122,6 @@ int main()
   std::ifstream in("input.txt");
   lr.fillMat(in);
   lr.gradient_descent();
-  std::cout << lr.test() << std::endl;
+  //std::cout << lr.test() << std::endl;
   return 0;
 }
