@@ -13,7 +13,7 @@ public class LogisticRegression {
 	private static double[][] matX;
 	private static double[][] matTheta;
 	private static int[][] matY;
-	private static double[] matInput = {1,	5.5,	2.3,	4,	1.3};
+	private static double[] matInput;
 
 	private static Scanner input;
 
@@ -28,6 +28,7 @@ public class LogisticRegression {
 		matX = new double[nData][nFeature+1];
 		matTheta = new double[nClass][nFeature+1];
 		matY = new int[nData][nClass];
+		matInput = new double[nFeature+1];
 
 		for(int i = 0; i < nData; i++) {
 			for(int j = 0; j < nColumns+1; j++) {
@@ -48,6 +49,16 @@ public class LogisticRegression {
 			updateTheta(0);
 			updateTheta(1);
 			updateTheta(2);
+
+			if(i % 20 == 0) {
+				for(int j = 0; j < nClass; j++) {
+					for(int k = 0; k < nFeature+1; k++) {
+						System.out.printf("θ%d%d : %.3f\t", j, k, matTheta[j][k]);
+					}
+					System.out.println();
+				}
+				System.out.println();
+			}
 		}
 
 		judge();
