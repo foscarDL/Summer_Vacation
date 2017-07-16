@@ -10,7 +10,7 @@
 
 #define INPUT_DATA_FILE 	"input_data.txt"
 #define TEST_DATA_FILE 		"test_data.txt"
-#define LEARNING_RATE 		0.0003
+#define LEARNING_RATE 		1.5
 
 int main(int argc, char* argv[]) {
 	Logistic_Regression model = Logistic_Regression();

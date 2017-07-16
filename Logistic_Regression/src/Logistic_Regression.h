@@ -27,7 +27,7 @@ private :
 	int size_of_training_data; // m
 	int size_of_features; // n
 	int size_of_class;
-	vector<double> theta_vec;
+	vector<double>* theta_vec;
 	vector<double> max_val_vec;
 	vector<double> min_val_vec;
 	vector<double> average_vec;

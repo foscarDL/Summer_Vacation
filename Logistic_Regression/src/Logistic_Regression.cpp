@@ -15,6 +15,7 @@ Logistic_Regression::Logistic_Regression() :
 Logistic_Regression::~Logistic_Regression() {
 	delete[] classes;
 	delete[] mat_array;
+	delete[] theta_vec;
 }
 double Logistic_Regression::calculate_cost_func(vector<double> theta ,int c) {
 	double cost_func_val = 0.f;
@@ -26,10 +27,12 @@ double Logistic_Regression::calculate_cost_func(vector<double> theta ,int c) {
 			x_vec[j] = input_mat.getValue(i+1, j+1);
 			//printf("%f ", x_vec[j]);
 		}
-		if(c == input_mat.getValue(i+1, size_of_features+1))
+		if(c == (int)input_mat.getValue(i+1, size_of_features+1))
 			y = 1;
-		cost_func_val += -y * log(calculate_hypothesis(x_vec, theta))
-		- (1 - y) * log(1 - calculate_hypothesis(x_vec, theta));
+		if(y == 1)
+			cost_func_val += -log(calculate_hypothesis(x_vec, theta));
+		else
+			cost_func_val += -log(1 - calculate_hypothesis(x_vec, theta));
 		//printf("\n");
 	}
 	cost_func_val /= size_of_training_data;
@@ -45,8 +48,9 @@ double Logistic_Regression::calculate_dif_cost_func(vector<double> theta, int in
 		for (int j = 1; j < size_of_features; j++) {
 			x_vec[j] = input_mat.getValue(i+1, j+1);
 		}
-		if(c == input_mat.getValue(i+1, size_of_features+1))
+		if(c == (int)input_mat.getValue(i+1, size_of_features+1)) {
 			y = 1;
+		}
 		cost_func_val += (calculate_hypothesis(x_vec, theta) - y) * x_vec[index];
 	}
 	cost_func_val /= size_of_training_data;
@@ -58,7 +62,7 @@ double Logistic_Regression::calculate_hypothesis(vector<double> input,
 	double hypothesis = 1.f;
 	double inner_product = 0.f;
 	for(int i = 0; i < size_of_features; i++) {
-		inner_product += theta[i] * input[i];
+		inner_product += theta[i] * pow(input[i], i+1);
 	}
 	hypothesis /= 1 + exp(-inner_product);
 	//return inner_product(theta.begin(), theta.end(), input.begin(), 0);
@@ -68,12 +72,12 @@ void Logistic_Regression::gradient_descent(double learning_rate) {
 	int count = 0;
 	for(int c = 1; c <= size_of_class; c++) {
 		while (true) {
-			printf("training step : %d\n", ++count);
-			double pre_cost = calculate_cost_func(theta_vec, c);
+			printf("class %d training step : %d\n",c, ++count);
+			double pre_cost = calculate_cost_func(theta_vec[c-1], c);
 			vector<double> temp(size_of_features + 1);
 			for (int i = 0; i < size_of_features; i++) {
-				temp[i] = theta_vec[i]
-						- learning_rate * calculate_dif_cost_func(theta_vec, i, c);
+				temp[i] = theta_vec[c-1][i]
+						- learning_rate * calculate_dif_cost_func(theta_vec[c-1], i, c);
 			}
 			printf("\n");
 			printf("theta_vec : ");
@@ -81,10 +85,10 @@ void Logistic_Regression::gradient_descent(double learning_rate) {
 				printf("%f ", temp[i]);
 			}
 			printf("\n");
-			printf("cost : %f\n", calculate_cost_func(theta_vec, c));
-			if (calculate_cost_func(temp, c) > pre_cost)
+			printf("cost : %f\n", calculate_cost_func(theta_vec[c-1], c));
+			if (calculate_cost_func(temp, c) >= pre_cost)
 				break;
-			theta_vec = temp;
+			theta_vec[c-1] = temp;
 		}
 	}
 }
@@ -153,14 +157,20 @@ void Logistic_Regression::measure_accuracy(const char* filename) {
 		test_mat = foscar::Matrix(size_of_features + 1, num_of_test_data);
 		double* temp_mat = new double[size_of_features + 1];
 		temp_mat[0] = 1.f;
-		for (int j = 1; j <= size_of_features; j++) {
+		for (int j = 1; j < size_of_features; j++) {
 			input >> temp;
 //			printf("%s ", temp);
 			temp_mat[j] = atof(temp);
 		}
-		test_mat.setValue(temp_mat, 1, size_of_features + 1);
+		input >> temp;
+		for(int i = 0; i < size_of_class; i++) {
+			if(!strcmp(classes[i].name.c_str(), temp)) {
+				temp_mat[size_of_features] = classes[i].no;
+				break;
+			}
+		}
+ 		test_mat.setValue(temp_mat, 1, size_of_features + 1);
 		delete[] temp_mat;
-		//test_mat.show();
 		mean_normalize(2);
 		vector<double> input_line_vector(size_of_features + 2);
 		//test_mat.show();
@@ -175,14 +185,21 @@ void Logistic_Regression::measure_accuracy(const char* filename) {
 void Logistic_Regression::measure_accuracy(vector<double> data_for_measurement) {
 	vector<double> x_vec(size_of_features + 1);
 	for (int i = 0; i < size_of_features; i++) {
-		//printf("x_vec[%d] : %f\n", i,data_for_measurement[i]);
 		x_vec[i] = data_for_measurement[i];
 	}
 	double actual_data = data_for_measurement[size_of_features];
-	double hypothesis = calculate_hypothesis(x_vec, theta_vec);
-	double error = fabs((hypothesis - actual_data) / actual_data) * 100;
-	printf("hypothesis : %f, actual_data : %f\nerror : %f\n", hypothesis,
-			actual_data, error);
+	double hypothesis = 0;
+	int predict;
+	for(int c = 1; c <= size_of_class; c++) {
+		double temp = calculate_hypothesis(x_vec, theta_vec[c-1]);
+		printf("hypothesis : %f\n", temp);
+		if(temp > hypothesis) {
+			predict = c;
+		}
+		hypothesis = temp;
+	}
+	int actual_index = (int) actual_data - 1;
+	printf("predict : %s, actual_data : %s\n", classes[predict-1].name.c_str(), classes[actual_index].name.c_str());
 }
 void Logistic_Regression::input_from_txt(const char* filename) {
 	ifstream input;
@@ -193,7 +210,6 @@ void Logistic_Regression::input_from_txt(const char* filename) {
 	}
 	input >> temp;
 	size_of_features = atoi(temp) + 1;
-	theta_vec = vector<double>(size_of_features + 1);
 	min_val_vec = vector<double>(size_of_features + 1);
 	max_val_vec = vector<double>(size_of_features + 1);
 	average_vec = vector<double>(size_of_features + 1);
@@ -202,13 +218,15 @@ void Logistic_Regression::input_from_txt(const char* filename) {
 	input >> temp;
 	size_of_class = atoi(temp);
 	classes = new class_map[size_of_class + 1];
+	theta_vec = new vector<double>[3];
+	for(int i = 0; i< size_of_class; i++)
+		theta_vec[i] = vector<double>(size_of_features + 1);
 
 	input >> temp;
 	size_of_training_data = atoi(temp);
 	temp_class_vec = vector<string>(size_of_training_data + 1);
 	input_mat = foscar::Matrix(size_of_features + 1, size_of_training_data);
-	mat_array = new double[(size_of_features + 1)
-			* size_of_training_data];
+	mat_array = new double[(size_of_features + 1) * size_of_training_data];
 	for (int i = 0; i < size_of_training_data; i++) {
 		input >> temp;
 		mat_array[i * (size_of_features + 1) + 0] = 1.f;
@@ -242,8 +260,6 @@ void Logistic_Regression::input_from_txt(const char* filename) {
 		average_vec[i] /= size_of_training_data;
 	}
 	input.close();
-//	input_mat.show();
-	delete[] mat_array;
 }
 
 void Logistic_Regression::calculate_max_min_val(int index, int row,
@@ -263,13 +279,11 @@ void Logistic_Regression::set_Class() {
 	for(int i = 0; i < size_of_class; i++) {
 		classes[i].name = unique_vec[i];
 		classes[i].no = i+1;
-		printf("%s\n", classes[i].name.c_str());
 	}
 	for(int i = 0; i < size_of_training_data; i++) {
 		for(int j = 0; j < size_of_class; j++) {
 			if(!strcmp(classes[j].name.c_str(), temp_class_vec[i].c_str())){
-				printf("%s\n", classes[j].name.c_str());
-				//mat_array[i * (size_of_features + 1) + size_of_features] = classes[j].no;
+				mat_array[i * (size_of_features + 1) + size_of_features] = classes[j].no;
 			}
 		}
 	}
